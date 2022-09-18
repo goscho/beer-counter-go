@@ -1,26 +1,26 @@
 package data
 
 import (
-	"context"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"database/sql"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"log"
 )
 
-func Connect() (*pgxpool.Pool, error) {
+func Connect() (*sql.DB, error) {
 
 	connStr := "postgresql://postgres:example@localhost:5432/test"
-	pool, err := pgxpool.Connect(context.Background(), connStr)
+	conn, err := sql.Open("pgx", connStr)
 
 	if err != nil {
 		log.Println("Connecting DB failed ", err)
 		return nil, err
 	}
 
-	if pool.Ping(context.Background()) != nil {
+	if conn.Ping() != nil {
 		log.Println("DB ping failed ", err)
 		return nil, err
 	}
 
 	log.Print("DB is reachable")
-	return pool, nil
+	return conn, nil
 }

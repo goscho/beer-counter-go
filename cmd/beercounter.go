@@ -2,16 +2,30 @@ package main
 
 import (
 	"beer-counter-go/internal/data"
-	"context"
+	"database/sql"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 )
 
+type Env struct {
+	persons data.PersonModel
+}
+
 func main() {
 
 	dbConnection, err := data.Connect()
-	defer dbConnection.Close()
+
+	defer func(dbConnection *sql.DB) {
+		err := dbConnection.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(dbConnection)
+
+	env := &Env{
+		persons: data.PersonModel{DB: dbConnection},
+	}
 
 	engine := gin.Default()
 	engine.GET("/ping", func(c *gin.Context) {
@@ -20,26 +34,19 @@ func main() {
 		})
 	})
 
-	engine.GET("/db-user", func(c *gin.Context) {
-		var user string
-		query := "select usename from pg_user"
-		err := dbConnection.QueryRow(context.Background(), query).Scan(&user)
-
-		if err != nil {
-			log.Println(err)
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"error": err,
-			})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"db-user": user,
-		})
-	})
+	engine.GET("/person", env.personsAll)
 
 	err = engine.Run() // listen and serve on 0.0.0.0:8080
 	if err != nil {
 		log.Fatal("Problem attaching to webserver ", err)
 	}
+}
+
+func (env *Env) personsAll(c *gin.Context) {
+	people, err := env.persons.FindAll()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	c.JSON(http.StatusOK, people)
 }
