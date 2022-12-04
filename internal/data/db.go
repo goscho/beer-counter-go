@@ -8,7 +8,7 @@ import (
 
 func Connect() (*sql.DB, error) {
 
-	connStr := "postgresql://postgres:example@localhost:5432/test"
+	connStr := "postgresql://postgres:example@localhost:5432/test?currentSchema=beer_counter"
 	conn, err := sql.Open("pgx", connStr)
 
 	if err != nil {

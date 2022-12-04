@@ -33,7 +33,7 @@ type PersonModel struct {
 }
 
 func (pm PersonModel) FindAll() ([]Person, error) {
-	rows, err := pm.DB.Query("SELECT ID, Name, Token FROM beer_counter.person")
+	rows, err := pm.DB.Query("SELECT ID, Name, Token FROM person")
 	if err != nil {
 		log.Println(err)
 	}
